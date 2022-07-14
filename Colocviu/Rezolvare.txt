@@ -1,0 +1,169 @@
+--> Subiectul 2
+
+	În general, Segmentation fault apare când încercăm să accesăm o zonă de memorie nepermisă. În
+cazul nostru, %esp-ul pointează spre vârful stivei, noi îl modificăm cu acel (movl $100, %esp), apoi
+când încercăm să facem (pushl %eax), programul nu știe unde să adauge %eax-ul pe stivă. Dacă ștergem
+acel rând, nu mai primim segmentation fault. Ar mai trebui să avem și movl $1, %eax în loc de $0 pentru
+a face exit, și de asemenea un popl %eax (numărul de push-uri trebuie să fie egal cu cel de pop-uri).
+
+
+
+
+
+
+
+--> Subiectul 3
+
+	0, dearece x-ul nu ar ajunge niciodată la valoarea 1, adică la condiția de oprire din procedura f.
+
+
+
+
+
+
+
+--> Subiectul 4
+
+	- Registrul %edi trebuie restaurat în functia f pentru că este folosit.
+
+	- Registrul %ecx trebuie restaurat înainte și după apelarea procedurii (înainte de call f) pentru
+că este modificat în funcția f.
+
+	- Registrul %ecx trebuie restaurat înainte și după afișare pentru că este alterat de funcția printf.
+	
+	- În loc de incl %edi, facem addl $4, %edi deoarece distanța dintre elementele array-ului este de 4
+octeți, nu 1 (cât ar adăuga instrucțiunea incl) deoarece elementele de tip long ocupă 4 octeți în memorie.
+
+
+	Deci codul corect ar fi acesta:
+
+.data
+    x: .long 3
+    lindex: .long L0, L1, L2, L3
+    n: .long 7
+    v: .long 15, 3, 2, 10, 1, 20, 0
+    formatPrintf: .asciz "%d\n"
+.text
+.global main
+ 
+f:
+    pushl %ebp
+    movl %esp, %ebp
+    pushl %edi
+    movl $0, %eax
+    movl 8(%ebp), %ecx
+
+
+    cmp $4, %ecx
+    jge final
+
+    cmp $-1, %ecx
+    jae final
+
+    movl $lindex, %edi
+    movl (%edi, %ecx, 4), %eax 
+
+    jmp *%eax
+ 
+L0:
+    movl $1, %eax
+    jmp final
+ 
+L1:
+    movl $2, %eax
+    jmp final
+ 
+L2:
+    movl $3, %eax
+    jmp final
+ 
+L3:
+    movl $4, %eax
+    jmp final
+ 
+final:
+    popl %edi
+    popl %ebp
+    ret
+ 
+main:
+    movl $v, %edi
+    movl $0, %ecx
+ 
+for_main:
+    cmp n, %ecx
+    jge final_main
+    movl 0(%edi), %eax
+
+    pushl %ecx
+    pushl %eax
+    call f
+    popl %ebx
+    popl %ecx
+
+    pushl %ecx
+    pushl %eax
+    pushl $formatPrintf
+    call printf
+    popl %ebx
+    popl %ebx
+    popl %ecx 
+
+    incl %ecx
+    addl $4, %edi
+
+    jmp for_main
+ 
+final_main:
+    movl $1, %eax
+    movl $0, %ebx
+    int $0x80
+
+
+
+
+--> Subiectul 5
+
+0
+4
+3
+0
+2
+0
+1
+
+
+
+
+
+
+
+--> Subiectul 6
+
+
+- Python -
+
+
+v = [15, 3, 2, 10, 1, 20, 0]
+
+def f(x):
+    if x>4:
+        x=0
+    elif -1 <= x <=3:
+        x+=1
+    return x
+
+for i in range(len(v)):
+    v[i] = f(v[i])
+    print(v[i])
+
+
+
+
+
+
+
+--> Subiectul 7
+
+	Programul nu conține o buclă infinită deoarece, la un moment dat, %ecx-ul va ajunge înapoi la valoarea
+-1 (overflow, fiind incrementat in continuu) și va ieși pe condiția de oprire, deci programul va ajunge în exit.
