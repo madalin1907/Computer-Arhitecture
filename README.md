@@ -22,7 +22,7 @@ To run a program, you need to use these 3 commands in Terminal:
     ./program
 ```    
 
-To test a whole homwwork with the python script, use this command in Terminal:
+To test a whole homework with the python script, use this command in Terminal:
 ```
     python2 script.py
 ```
